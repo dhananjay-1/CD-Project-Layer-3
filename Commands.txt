@@ -1,0 +1,32 @@
+1. Make integer variable x
+2. Assign value 10 to x
+3. Add 20 to x
+4. Make integer variable y
+5. Assign 30 to y
+6. Multiply x and y
+7. if x+y*x+y>30 and x-y<20 then ....
+8. Make a list of 10 numbers
+9. Give me the sum of the list
+10. Give me product of the list
+
+Codes:-
+0 : Variable creation
+{
+	codeNo:0,
+	variableName:"x",
+	dataType:"char"/"int"/"float"/"double"/"bool",
+	initialValue:value or 0 if not available
+}
+1: Direct Value Assignment Operation
+{
+	codeNo:1,
+	variableName:"res",
+	value:""
+}
+2: Arithmetic operation
+{
+	
+}
+
+
+
