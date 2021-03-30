@@ -11,22 +11,70 @@
 
 Codes:-
 0 : Variable creation
+Ex: 
+Make a number x with value 10
 {
 	codeNo:0,
 	variableName:"x",
 	dataType:"char"/"int"/"float"/"double"/"bool",
-	initialValue:value or 0 if not available
+	initialValue:value or empty string if not available
 }
+
 1: Direct Value Assignment Operation
+Ex: 
+Store 10 in res
+Assign 10 to res
 {
 	codeNo:1,
 	variableName:"res",
 	value:""
 }
+
 2: Arithmetic operation
+Ex:
+Store sum of x and y in res
+Assign x plus y to res
+Store product of x and 10 in res
 {
-	
+	codeNo:2,
+	operation:"+" or "-" or "*" or "/" or "%",
+	operand1:"x", // can be a value
+	operand2:"y", // can be a value
+	result:"res" // must be a variable or empty string if not available
 }
+
+3: Conditional statements
+Ex:
+if x less than 10 then...
+else if y equals 20 then...
+else ....
+{
+	codeNo:3,
+	conditionalKeyword:"if" or "else if" or "else",
+	expression:"true" or "flase" or any expression like "x+y<10 and x-y>0" or empty string in case of else
+}
+4: Come out of any block
+Ex:
+Come out
+Come out of this block
+{
+	codeNo:4
+}
+
+
+// TODO:-
+1. more than 2 operands arithmetic expressions like res = x+y*z-w;
+
+2. Scope wise Error handling for variables, different variables will be having different scope
+	2a. Currently all declared variables are treated in the same scope as if all are directly in main() block 
+	2b. Conditional expression error detection and handling : currently the expression is as it is printed
+
+3. Error Handling: Nested loops and conditional statements and loops inside conditions and vice versa
+	e.g.: someone may directly say else even when if condition not available
+
+4. Handle leading zeroes in numbers cuz leading 0 number is treated as octal constant in cpp
+
+
 
 
 
