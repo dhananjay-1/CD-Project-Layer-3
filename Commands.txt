@@ -9,6 +9,8 @@
 9. Give me the sum of the list
 10. Give me product of the list
 
+*********TRY HINGLISH TRAINING TOO******
+
 Codes:-
 0 : Variable creation
 Ex: 
@@ -16,7 +18,7 @@ Make a number x with value 10
 {
 	codeNo:0,
 	variableName:"x",
-	dataType:"char"/"int"/"float"/"double"/"bool",
+	dataType:"char"/"int"/"float"/"double"/"bool"...any data type,
 	initialValue:value or empty string if not available
 }
 
@@ -63,13 +65,35 @@ Come out of this block
 }
 
 5: while loop
-Ex: while x less than 10 do....
+Ex: 
+while x less than 10 do....
 {
 	codeNo:5,
 	expression:"true" or "false" or any expression like "x+y<10 and x-y>0"
 }
 
-6: 
+6: list/array/vector creation => we will just create a vector
+Ex: 
+make a list L of 10 numbers
+make a list L of 10 characters
+i want a list L of floating point numbers
+i want a boolean list L
+{
+	codeNo:6,
+	dataType:"int"/"float"/"bool"/"double"/"char"/...any data type,
+	variableName:"L",
+	initialSize:0 if not specified, otherwise any positive integer
+}
+
+7: taking input
+Ex:
+Take input of x
+input y
+L ka input lo
+{
+	codeNo:7,
+	variableName:"x" // whatever mentioned by user
+}
 
 
 // TODO:-
@@ -84,6 +108,7 @@ Ex: while x less than 10 do....
 
 4. Handle leading zeroes in numbers cuz leading 0 number is treated as octal constant in cpp
 
+5. Checking if the data type and variable name specified are valid or not
 
 
 

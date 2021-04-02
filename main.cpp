@@ -11,8 +11,8 @@ void filereader(char* ipFile, char* opFile) {
 }
 
 // Just for testing Layer 3
-pair<string, int> tokens[] = {{"make", 0}, {"assign", 1}, {"arith", 2}, {"condition", 3}, {"comeout", 4}, {"while", 5}};
-const int tokens_size = 6;
+pair<string, int> tokens[] = {{"make", 0}, {"assign", 1}, {"arith", 2}, {"condition", 3}, {"comeout", 4}, {"while", 5}, {"list", 6}, {"input", 7}};
+const int tokens_size = 8;
 
 struct Command
 {
@@ -29,6 +29,8 @@ struct Command
     string conditionalKeyword;
     string expression;
 
+    int initialSize;
+
     void clearCommand()
     {
         codeNo = -1;
@@ -43,6 +45,13 @@ struct Command
 
         conditionalKeyword = "";
         expression = "";
+
+        initialSize = 0;
+    }
+
+    Command()
+    {
+        clearCommand();
     }
 };
 
@@ -66,7 +75,10 @@ class AlgoInterpreter
 
     void analyzer(string& s);
 
-    bool isInteger(string& s);
+    bool isInteger(const string& s);
+    int convertToInteger(const string& s);
+    string convertToString(int n);
+
     void declareVariable();
     void assignValue();
     void performArithmeticOperation();
@@ -74,6 +86,8 @@ class AlgoInterpreter
     void createConditionalBlock();
     void comeOutOfBlock();
     void createWhileBlock();
+    void createList();
+    void takeInput();
 
     void cppCodeGenerator();
 
@@ -194,12 +208,30 @@ void AlgoInterpreter::analyzer(string& ipStr)
         {
             command.expression += " "+token;
         }
+        else if(command.codeNo==6)
+        {
+            switch(tokenNo)
+            {
+                case 1: command.dataType = token;
+                    break;
+                case 2: command.variableName = token;
+                    break;
+                case 3: command.initialSize = convertToInteger(token);
+                    break;
+            }
+        }
+        else if(command.codeNo==7)
+        {
+            command.variableName = token;
+        }
     }
 
 }
 
-bool AlgoInterpreter::isInteger(string& s)
+bool AlgoInterpreter::isInteger(const string& s)
 {
+    if(s.size()==0) return false;
+
     int n = s.size();
     for(int i=0; i<n; ++i)
     {
@@ -215,6 +247,50 @@ bool AlgoInterpreter::isInteger(string& s)
     }
 
     return true;
+}
+
+int AlgoInterpreter::convertToInteger(const string& s)
+{
+    assert(isInteger(s));
+
+    int n = s.size(), res = 0;
+    for(int i=0; i<n; ++i)
+    {
+        res = res*10+(s[i]-'0');
+    }
+
+    return res;
+}
+
+string AlgoInterpreter::convertToString(int n)
+{
+    string s = "";
+
+    bool isNeg = false;
+
+    if(n<0)
+    {
+        isNeg = true;
+        n = -n;
+    }
+    else if(n==0)
+    {
+        s="0";
+    }
+    else
+    {
+        while(n>0)
+        {
+            char c = (n%10)+'0';
+            s = c+s;
+            n/=10;
+        }
+    }
+
+    if(isNeg) s = "-"+s;
+
+    return s;
+
 }
 
 void AlgoInterpreter::declareVariable()
@@ -366,6 +442,49 @@ void AlgoInterpreter::createWhileBlock()
     ++nestedBlocksCounter;
 }
 
+void AlgoInterpreter::createList()
+{
+    if(declaredVariables.count(command.variableName))
+    {
+        cout<<"Error : "<<command.variableName<<" varibale already declared"<<endl;
+
+        //TODO: Handle error
+
+        return;
+    }
+
+    declaredVariables[command.variableName] = "vector<"+command.dataType+">";
+
+    string& s = cppCodeBody;
+
+    s += "\nvector<"+command.dataType+"> "+command.variableName+"("+convertToString(command.initialSize)+");";
+}
+
+void AlgoInterpreter::takeInput()
+{
+    if(!declaredVariables.count(command.variableName))
+    {
+        cout<<"Error : "<<command.variableName<<" varibale not declared yet"<<endl;
+
+        //TODO: Handle error
+
+        return;
+    }
+
+    string dataType = declaredVariables[command.variableName];
+
+    string& s = cppCodeBody;
+
+    if(dataType[0]=='v')// vector
+    {
+        s += "\nfor(int i=0; i<"+command.variableName+".size(); ++i){\n\tcin>>"+command.variableName+"[i];\n}";
+    }
+    else
+    {
+        s += "\ncin>>"+command.variableName+";";
+    }
+}
+
 void AlgoInterpreter::cppCodeGenerator()
 {
     switch(command.codeNo)
@@ -381,6 +500,10 @@ void AlgoInterpreter::cppCodeGenerator()
         case 4: comeOutOfBlock();
             break;
         case 5: createWhileBlock();
+            break;
+        case 6: createList();
+            break;
+        case 7: takeInput();
             break;
         default: cout<<"Error : command codeNo : "<<command.codeNo<<" not available"<<endl;
     }
