@@ -11,8 +11,8 @@ void filereader(char* ipFile, char* opFile) {
 }
 
 // Just for testing Layer 3
-pair<string, int> tokens[] = {{"make", 0}, {"assign", 1}, {"arith", 2}, {"condition", 3}, {"comeout", 4}};
-const int tokens_size = 5;
+pair<string, int> tokens[] = {{"make", 0}, {"assign", 1}, {"arith", 2}, {"condition", 3}, {"comeout", 4}, {"while", 5}};
+const int tokens_size = 6;
 
 struct Command
 {
@@ -70,8 +70,10 @@ class AlgoInterpreter
     void declareVariable();
     void assignValue();
     void performArithmeticOperation();
+    bool isExpressionEmpty(const string& s);
     void createConditionalBlock();
     void comeOutOfBlock();
+    void createWhileBlock();
 
     void cppCodeGenerator();
 
@@ -188,6 +190,10 @@ void AlgoInterpreter::analyzer(string& ipStr)
         {
             // nothing required to be done here
         }
+        else if(command.codeNo==5)
+        {
+            command.expression += " "+token;
+        }
     }
 
 }
@@ -295,31 +301,35 @@ void AlgoInterpreter::performArithmeticOperation()
     s += "\n"+command.result+" = "+command.operand1+command.operation+command.operand2+";";
 }
 
+bool AlgoInterpreter::isExpressionEmpty(const string& str)
+{
+    int n = str.size();
+
+    for(int i=0; i<n; ++i)
+    {
+        if(str[i]!=' ' && str[i]!='\n' && str[i]!='\t')
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void AlgoInterpreter::createConditionalBlock()
 {
-    string& s = cppCodeBody;
-
     if(command.conditionalKeyword!="else")
     {
-        bool isEmpty = true;
-        int n = command.expression.size();
-        for(int i=0; i<n; ++i)
+        if(isExpressionEmpty(command.expression))
         {
-            if(s[i]!=' ' && s[i]!='\n' && s[i]!='\t')
-            {
-                isEmpty = false;
-                break;
-            }
-        }
-
-        if(isEmpty)
-        {
-            cout<<"Error : Conditional block cannot be empty"<<endl;
+            cout<<"Error : Conditional expression cannot be empty"<<endl;
             return;
         }
 
         command.expression = "("+command.expression+")";
     }
+
+    string& s = cppCodeBody;
 
     s += "\n"+command.conditionalKeyword+command.expression+"{\n";
 
@@ -339,6 +349,23 @@ void AlgoInterpreter::comeOutOfBlock()
     --nestedBlocksCounter;
 }
 
+void AlgoInterpreter::createWhileBlock()
+{
+    if(isExpressionEmpty(command.expression))
+    {
+        cout<<"Error : Conditional expression cannot be empty"<<endl;
+        return;
+    }
+
+    command.expression = "("+command.expression+")";
+
+    string& s = cppCodeBody;
+
+    s += "\nwhile"+command.expression+"{\n";
+
+    ++nestedBlocksCounter;
+}
+
 void AlgoInterpreter::cppCodeGenerator()
 {
     switch(command.codeNo)
@@ -352,6 +379,8 @@ void AlgoInterpreter::cppCodeGenerator()
         case 3: createConditionalBlock();
             break;
         case 4: comeOutOfBlock();
+            break;
+        case 5: createWhileBlock();
             break;
         default: cout<<"Error : command codeNo : "<<command.codeNo<<" not available"<<endl;
     }

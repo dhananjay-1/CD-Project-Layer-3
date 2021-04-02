@@ -53,6 +53,7 @@ else ....
 	conditionalKeyword:"if" or "else if" or "else",
 	expression:"true" or "flase" or any expression like "x+y<10 and x-y>0" or empty string in case of else
 }
+
 4: Come out of any block
 Ex:
 Come out
@@ -60,6 +61,15 @@ Come out of this block
 {
 	codeNo:4
 }
+
+5: while loop
+Ex: while x less than 10 do....
+{
+	codeNo:5,
+	expression:"true" or "false" or any expression like "x+y<10 and x-y>0"
+}
+
+6: 
 
 
 // TODO:-
