@@ -17,36 +17,28 @@ const int tokens_size = 8;
 struct Command
 {
     int codeNo;
-    string dataType;
-    string variableName;
-    string value;
+    map<string, string> entityMap;
 
-    string operation;
-    string operand1;
-    string operand2;
-    string result;
+    void prepareCommand()
+    {
+        cin>>codeNo;
 
-    string conditionalKeyword;
-    string expression;
+        string entity; cin>>entity;
 
-    int initialSize;
+        while(entity!="end")
+        {
+            string val; getline(cin, val);
+            entityMap[entity] = val;
+
+            cin>>entity;
+        }
+
+    }
 
     void clearCommand()
     {
         codeNo = -1;
-        dataType = "";
-        variableName = "";
-        value = "";
-
-        operation = "";
-        operand1 = "";
-        operand2 = "";
-        result = "";
-
-        conditionalKeyword = "";
-        expression = "";
-
-        initialSize = 0;
+        entityMap.clear();
     }
 
     Command()
@@ -88,6 +80,8 @@ class AlgoInterpreter
     void createWhileBlock();
     void createList();
     void takeInput();
+    void performArithmeticOperation2();
+    void giveOutput();
 
     void cppCodeGenerator();
 
@@ -103,14 +97,17 @@ public:
         nestedBlocksCounter = 0;
     }
 
-    void interpret(string& s);
+    void interpret();
     void showCppCode();
 };
 
-void AlgoInterpreter::interpret(string& s)
+void AlgoInterpreter::interpret()
 {
-    analyzer(s);
+    //analyzer(s);
+    command.prepareCommand();
     cppCodeGenerator();
+
+    cout<<cppCodeBody;
 }
 
 void AlgoInterpreter::showCppCode()
@@ -127,6 +124,7 @@ void AlgoInterpreter::showCppCode()
 }
 
 // This function is just to test whether the layer 3 is working properly or not when the tokenized command is received from layer 2, that is NLP layer
+/*
 void AlgoInterpreter::analyzer(string& ipStr)
 {
     int tokenNo = 0;
@@ -227,6 +225,7 @@ void AlgoInterpreter::analyzer(string& ipStr)
     }
 
 }
+*/
 
 bool AlgoInterpreter::isInteger(const string& s)
 {
@@ -295,29 +294,35 @@ string AlgoInterpreter::convertToString(int n)
 
 void AlgoInterpreter::declareVariable()
 {
-    if(declaredVariables.count(command.variableName))
+    string variableName = command.entityMap["variableName"];
+    string dataType = command.entityMap["dataType"];
+    string value = command.entityMap["value"];
+
+    /*
+    if(declaredVariables.count(variableName))
     {
-        cout<<"Error : "<<command.variableName<<" varibale already declared"<<endl;
+        cout<<"Error : "<<variableName<<" varibale already declared"<<endl;
 
         //TODO: Handle error
 
         return;
     }
+    */
 
-    declaredVariables[command.variableName] = command.dataType;
+    declaredVariables[variableName] = dataType;
 
     string& s = cppCodeBody;
 
-    s += "\n" + command.dataType + " " + command.variableName;
+    s += "\n" + dataType + " " + variableName;
 
-    if(!command.value.empty())
+    if(!value.empty())
     {
-        if(command.dataType=="char")
+        if(dataType=="char")
         {
-            command.value = "'"+command.value+"'";
+            value = "'"+value+"'";
         }
 
-        s += " = " + command.value;
+        s += " = " + value;
     }
 
     s += ";";
@@ -325,34 +330,45 @@ void AlgoInterpreter::declareVariable()
 
 void AlgoInterpreter::assignValue()
 {
-    if(!declaredVariables.count(command.variableName))
+    string variableName = command.entityMap["variableName"];
+    string value = command.entityMap["value"];
+
+    /*
+    if(!declaredVariables.count(variableName))
     {
-        cout<<"Error : "<<command.variableName<<" variable not declared yet"<<endl;
+        cout<<"Error : "<<variableName<<" variable not declared yet"<<endl;
 
         //TODO: Handle error
 
         return;
     }
+    */
 
     string& s = cppCodeBody;
 
-    string& dataType = declaredVariables[command.variableName];
+    string& dataType = declaredVariables[variableName];
 
     if(dataType=="char")
     {
-        command.value = "\'"+command.value+"\'";
+        value = "\'"+value+"\'";
     }
 
-    s += "\n"+command.variableName+" = "+command.value+";";
+    s += "\n"+variableName+" = "+value+";";
 
 }
 
 void AlgoInterpreter::performArithmeticOperation()
 {
-    string var[3] = {command.operand1, command.operand2, command.result};
+    string operation = command.entityMap["operation"];
+    string operand1 = command.entityMap["operand1"];
+    string operand2 = command.entityMap["operand2"];
+    string result = command.entityMap["result"];
+
+    string var[3] = {operand1, operand2, result};
 
     bool flag = 0;
 
+    /*
     for(int i=0; i<3; ++i)
     {
         if(!declaredVariables.count(var[i]))
@@ -366,6 +382,7 @@ void AlgoInterpreter::performArithmeticOperation()
             }
         }
     }
+    */
 
     if(flag)
     {
@@ -374,7 +391,18 @@ void AlgoInterpreter::performArithmeticOperation()
 
     string& s = cppCodeBody;
 
-    s += "\n"+command.result+" = "+command.operand1+command.operation+command.operand2+";";
+    s += "\n"+result+" = "+operand1+operation+operand2+";";
+}
+
+void AlgoInterpreter::performArithmeticOperation2()
+{
+    string operation = command.entityMap["operation"];
+    string value = command.entityMap["value"];
+    string variableName = command.entityMap["variableName"];
+
+    string& s = cppCodeBody;
+
+    s += "\n"+variableName+" "+operation+"= "+value+";";
 }
 
 bool AlgoInterpreter::isExpressionEmpty(const string& str)
@@ -394,20 +422,23 @@ bool AlgoInterpreter::isExpressionEmpty(const string& str)
 
 void AlgoInterpreter::createConditionalBlock()
 {
-    if(command.conditionalKeyword!="else")
+    string conditionalKeyword = command.entityMap["conditionalKeyword"];
+    string expression = command.entityMap["expression"];
+
+    if(conditionalKeyword!="else" && conditionalKeyword!=" else")
     {
-        if(isExpressionEmpty(command.expression))
+        if(isExpressionEmpty(expression))
         {
             cout<<"Error : Conditional expression cannot be empty"<<endl;
             return;
         }
 
-        command.expression = "("+command.expression+")";
+        expression = "("+expression+")";
     }
 
     string& s = cppCodeBody;
 
-    s += "\n"+command.conditionalKeyword+command.expression+"{\n";
+    s += "\n"+conditionalKeyword+expression+"{\n";
 
     ++nestedBlocksCounter;
 
@@ -427,62 +458,94 @@ void AlgoInterpreter::comeOutOfBlock()
 
 void AlgoInterpreter::createWhileBlock()
 {
-    if(isExpressionEmpty(command.expression))
+    string expression = command.entityMap["expression"];
+
+    if(isExpressionEmpty(expression))
     {
         cout<<"Error : Conditional expression cannot be empty"<<endl;
         return;
     }
 
-    command.expression = "("+command.expression+")";
+    expression = "("+expression+")";
 
     string& s = cppCodeBody;
 
-    s += "\nwhile"+command.expression+"{\n";
+    s += "\nwhile"+expression+"{\n";
 
     ++nestedBlocksCounter;
 }
 
 void AlgoInterpreter::createList()
 {
-    if(declaredVariables.count(command.variableName))
+    string variableName = command.entityMap["variableName"];
+    string dataType = command.entityMap["dataType"];
+    string initialSize = command.entityMap["initialSize"];
+
+    /*
+    if(declaredVariables.count(variableName))
     {
-        cout<<"Error : "<<command.variableName<<" varibale already declared"<<endl;
+        cout<<"Error : "<<variableName<<" varibale already declared"<<endl;
 
         //TODO: Handle error
 
         return;
     }
+    */
 
-    declaredVariables[command.variableName] = "vector<"+command.dataType+">";
+    declaredVariables[variableName] = "vector<"+dataType+">";
 
     string& s = cppCodeBody;
 
-    s += "\nvector<"+command.dataType+"> "+command.variableName+"("+convertToString(command.initialSize)+");";
+    s += "\nvector<"+dataType+"> "+variableName+"("+initialSize+");";
 }
 
 void AlgoInterpreter::takeInput()
 {
-    if(!declaredVariables.count(command.variableName))
+    string variableName = command.entityMap["variableName"];
+
+    /*
+    if(!declaredVariables.count(variableName))
     {
-        cout<<"Error : "<<command.variableName<<" varibale not declared yet"<<endl;
+        cout<<"Error : "<<variableName<<" varibale not declared yet"<<endl;
 
         //TODO: Handle error
 
         return;
     }
+    */
 
-    string dataType = declaredVariables[command.variableName];
+    string dataType = declaredVariables[variableName];
 
     string& s = cppCodeBody;
 
     if(dataType[0]=='v')// vector
     {
-        s += "\nfor(int i=0; i<"+command.variableName+".size(); ++i){\n\tcin>>"+command.variableName+"[i];\n}";
+        s += "\nfor(int i=0; i<"+variableName+".size(); ++i){\n\tcin>>"+variableName+"[i];\n}";
     }
     else
     {
-        s += "\ncin>>"+command.variableName+";";
+        s += "\ncin>>"+variableName+";";
     }
+}
+
+void AlgoInterpreter::giveOutput()
+{
+    string variableName = command.entityMap["variableName"];
+
+    /*
+    if(!declaredVariables.count(variableName))
+    {
+        cout<<"Error : "<<variableName<<" varibale not declared yet"<<endl;
+
+        //TODO: Handle error
+
+        return;
+    }
+    */
+
+    string& s = cppCodeBody;
+
+    s += "\n cout << "+variableName+";";
 }
 
 void AlgoInterpreter::cppCodeGenerator()
@@ -505,6 +568,10 @@ void AlgoInterpreter::cppCodeGenerator()
             break;
         case 7: takeInput();
             break;
+        case 8: performArithmeticOperation2();
+            break;
+        case 9: giveOutput();
+            break;
         default: cout<<"Error : command codeNo : "<<command.codeNo<<" not available"<<endl;
     }
 
@@ -518,8 +585,12 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    //filereader("ip.txt", "op.txt");
+    AlgoInterpreter ai;
 
+    ai.interpret();
+
+    //filereader("ip.txt", "op.txt");
+    /*
     AlgoInterpreter ai;
 
     string s; getline(cin, s);
@@ -539,6 +610,7 @@ int main()
 
         getline(cin, s);
     }
+    */
 
     return 0;
 }
